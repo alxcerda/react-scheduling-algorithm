@@ -1,5 +1,7 @@
 import React, { useState } from "react";
+import Node from "./components/Node";
 import "./App.css";
+import { uniq } from "lodash";
 
 function App() {
   const [state, setState] = useState({
@@ -11,32 +13,14 @@ function App() {
   const [students] = useState(new Map());
   const [examMap] = useState(new Map());
   const [adjMap] = useState(new Map());
+  const [upperBound, setUpperBound] = useState("");
 
   function addPair(module, student) {
-    var moduleId;
-    var studentId;
+    setUpperBound("");
 
-    // get moduleId
-    if (!modules.has(module) && modules.size === 0) {
-      moduleId = 0;
-      modules.set(module, moduleId);
-    } else if (!modules.has(module)) {
-      moduleId = modules.size;
-      modules.set(module, moduleId);
-    } else {
-      moduleId = modules.get(module);
-    }
-
-    // get studentId
-    if (!students.has(student) && students.size === 0) {
-      studentId = 0;
-      students.set(student, studentId);
-    } else if (!students.has(student)) {
-      studentId = students.size;
-      students.set(student, studentId);
-    } else {
-      studentId = students.get(student);
-    }
+    // set IDs
+    let moduleId = setId(module, modules);
+    let studentId = setId(student, students);
 
     // add to examMap
     if (!examMap.has(moduleId)) {
@@ -58,17 +42,24 @@ function App() {
         adjMap.get(moduleId).add(i);
       }
     }
-
+    setState({ ...state, student: "" });
     console.log("ADJ", adjMap);
     console.log("EXAM", examMap);
     console.log("STUDENT", students);
     console.log("MOD", modules);
-    setState({ ...state, student: "" });
   }
 
-  // modules.set(module, new Set(student));
-  // timetable.set(module, timetable.get(module).add(student));
-  //
+  function setId(name, map) {
+    if (!map.has(name) && map.size === 0) {
+      map.set(name, 0);
+      return 0;
+    } else if (!map.has(name)) {
+      map.set(name, map.size);
+      return map.size - 1;
+    } else {
+      return map.get(name);
+    }
+  }
 
   function applyGreedyAlgorithm() {
     // need to assign colours for all vertices
@@ -96,6 +87,7 @@ function App() {
     }
 
     console.log(assignedColours);
+    setUpperBound(uniq(assignedColours, false).length);
   }
 
   function handleChange(event) {
@@ -127,10 +119,12 @@ function App() {
         <button onClick={() => addPair(state.module, state.student)}>
           Add
         </button>
-
         <button onClick={() => applyGreedyAlgorithm()}>
           Apply the 'Greedy Algorithm'
         </button>
+        {upperBound && <h3> The upper bound is {upperBound}</h3>}
+        {modules.size > 0 &&
+          Array.from(modules.keys()).map((node) => <Node name={node} />)}
       </div>
     </div>
   );
