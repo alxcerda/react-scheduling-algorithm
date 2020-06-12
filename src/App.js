@@ -70,24 +70,29 @@ function App() {
   // timetable.set(module, timetable.get(module).add(student));
   //
 
-  function greedyAlgorithm() {
+  function applyGreedyAlgorithm() {
     // need to assign colours for all vertices
-    let availableColours = [...Array(adjMap.size).keys()];
+    let availableColours = new Set(Array(adjMap.size).keys());
+    console.log("avcolours", availableColours);
     let assignedColours = new Array(adjMap.size).fill(-1);
+    console.log("ascolours", assignedColours);
     // assign the first colour
     assignedColours[0] = 0;
 
     for (let i = 1; i < adjMap.size; i++) {
       let edges = adjMap.get(i);
+      let test = edges.values();
       for (let j = 0; j < edges.size; j++) {
-        if (assignedColours[edges[j]] !== -1) {
-          const index = availableColours.indexOf(assignedColours[edges[j]]);
-          availableColours.splice(index, 1);
+        let vertex = test.next().value;
+        let colour = assignedColours[vertex];
+        if (colour !== -1) {
+          // const index = availableColours.indexOf(assignedColours[edges[j]]);
+          availableColours.delete(colour);
         }
       }
-      assignedColours[i] = Math.min(availableColours);
+      assignedColours[i] = Math.min(...Array.from(availableColours.values()));
       // reset the available colours
-      availableColours = [...Array(adjMap.size).keys()];
+      availableColours = new Set(Array(adjMap.size).keys());
     }
 
     console.log(assignedColours);
@@ -123,7 +128,7 @@ function App() {
           Add
         </button>
 
-        <button onClick={() => greedyAlgorithm()}>
+        <button onClick={() => applyGreedyAlgorithm()}>
           Apply the 'Greedy Algorithm'
         </button>
       </div>
