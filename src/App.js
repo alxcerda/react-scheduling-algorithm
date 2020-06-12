@@ -71,6 +71,7 @@ function App() {
     for (let i = 1; i < adjMap.size; i++) {
       let edges = adjMap.get(i);
       let test = edges.values();
+
       for (let j = 0; j < edges.size; j++) {
         let vertex = test.next().value;
         let color = assignedColors[vertex];
@@ -78,6 +79,7 @@ function App() {
           availableColors.delete(color);
         }
       }
+
       assignedColors[i] = Math.min(...Array.from(availableColors.values()));
       const exisitingColor = colors.find(
         (item) => item.index === assignedColors.indexOf(assignedColors[i])
@@ -92,9 +94,10 @@ function App() {
         else colors.push({ index: i, color: exisitingColor });
       } else {
         if (existingObj)
-          colors[colors.indexOf(existingObj)].color = exisitingColor;
+          colors[colors.indexOf(existingObj)].color = randomColor();
         else colors.push({ index: i, color: randomColor() });
       }
+
       // reset the available colours
       availableColors = new Set(Array(adjMap.size).keys());
     }
@@ -104,7 +107,7 @@ function App() {
   }
 
   function getNodeDetails() {
-    // get name and number sitting
+    // get module name and number of students sitting exam
     let details = [];
     let keys = Array.from(modules.keys());
     for (let i = 0; i < adjMap.size; i++) {
