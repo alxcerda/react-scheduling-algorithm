@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Node from "./components/Node";
 import "./App.scss";
-import { uniq } from "lodash";
+import { uniq, invert } from "lodash";
 
 function App() {
   const [state, setState] = useState({
@@ -43,10 +43,10 @@ function App() {
       }
     }
     setState({ ...state, student: "" });
-    console.log("ADJ", adjMap);
-    console.log("EXAM", examMap);
-    console.log("STUDENT", students);
-    console.log("MOD", modules);
+    // console.log("ADJ", adjMap);
+    // console.log("EXAM", examMap);
+    // console.log("STUDENT", students);
+    // console.log("MOD", modules);
   }
 
   function setId(name, map) {
@@ -91,6 +91,16 @@ function App() {
     else setUpperBound(uniq(assignedColours, false).length);
   }
 
+  function getNodeDetails() {
+    // get name and number sitting
+    let details = [];
+    let keys = Array.from(modules.keys());
+    for (let i = 0; i < adjMap.size; i++) {
+      details.push({ name: keys[i], number: examMap.get(i).size });
+    }
+    return details;
+  }
+
   function handleChange(event) {
     const value = event.target.value;
     setState({
@@ -126,7 +136,9 @@ function App() {
       </div>
       {upperBound !== null && <h3> The upper bound is {upperBound}</h3>}
       {modules.size > 0 &&
-        Array.from(modules.keys()).map((node) => <Node name={node} />)}
+        getNodeDetails().map((node, index) => (
+          <Node name={node.name} number={node.number} index={index} />
+        ))}
     </div>
   );
 }

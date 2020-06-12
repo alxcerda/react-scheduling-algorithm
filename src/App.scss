@@ -25,34 +25,38 @@ button {
   margin: 1vh 0 1vh 0;
 }
 
+.number {
+  display: none;
+}
+
 .node {
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 6vh;
+  margin: 1vh;
+  width: 20vh;
   height: 6vh;
-  border-radius: 50%;
   border: 0.2vh solid black;
-  background-color: blueviolet;
-  color: white;
+  background-color: rgb(231, 231, 231);
+  color: black;
+  transition: 750ms all;
+  &:hover {
+    .name {
+      display: none;
+    }
+    .number {
+      opacity: 1;
+      display: inline;
+    }
+    cursor: pointer;
+  }
 }
 
-div.node span {
-  // position: absolute;
-  padding: 1vh;
-  z-index: 1000000;
-  display: inline;
-  opacity: 0;
-  transition: 750ms all;
-  text-align: center;
-  &:hover {
-    cursor: pointer;
-    outline: none;
-    text-decoration: none;
-    text-align: center;
-    font-size: 90%;
-    color: #ffffff;
-    opacity: 1;
-    font-weight: bold;
-  }
+.modules {
+  display: flex;
+  position: relative;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 70vh;
 }

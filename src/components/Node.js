@@ -1,9 +1,10 @@
 import React from "react";
 
-function Node({ name }) {
+function Node({ name, number, index }) {
   return (
     <div className="node">
-      <span>{name}</span>
+      <span className="name">{name}</span>
+      <span className="number">{number}</span>
     </div>
   );
 }
