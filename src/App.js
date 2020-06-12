@@ -5,68 +5,93 @@ function App() {
   const [state, setState] = useState({
     module: "",
     student: "",
-    modules: new Map(),
-    students: new Map(),
-    examMap: new Map(),
-    adjMap: new Map(),
   });
+
+  const [modules] = useState(new Map());
+  const [students] = useState(new Map());
+  const [examMap] = useState(new Map());
+  const [adjMap] = useState(new Map());
 
   function addPair(module, student) {
     var moduleId;
     var studentId;
 
     // get moduleId
-    if (!state.modules.has(module) && state.modules.size === 0) {
+    if (!modules.has(module) && modules.size === 0) {
       moduleId = 0;
-      state.modules.set(module, moduleId);
-    } else if (!state.modules.has(module)) {
-      moduleId = state.modules.size;
-      state.modules.set(module, moduleId);
+      modules.set(module, moduleId);
+    } else if (!modules.has(module)) {
+      moduleId = modules.size;
+      modules.set(module, moduleId);
     } else {
-      moduleId = state.modules.get(module);
+      moduleId = modules.get(module);
     }
 
     // get studentId
-    if (!state.students.has(student) && state.students.size === 0) {
+    if (!students.has(student) && students.size === 0) {
       studentId = 0;
-      state.students.set(student, studentId);
-    } else if (!state.students.has(student)) {
-      studentId = state.students.size;
-      state.students.set(student, studentId);
+      students.set(student, studentId);
+    } else if (!students.has(student)) {
+      studentId = students.size;
+      students.set(student, studentId);
     } else {
-      studentId = state.students.get(student);
+      studentId = students.get(student);
     }
 
     // add to examMap
-    if (!state.examMap.has(moduleId)) {
+    if (!examMap.has(moduleId)) {
       var set = new Set();
-      state.examMap.set(moduleId, set.add(studentId));
+      examMap.set(moduleId, set.add(studentId));
     } else {
-      state.examMap.get(moduleId).add(studentId);
+      examMap.get(moduleId).add(studentId);
     }
 
     // add to adjacency list
-    if (!state.adjMap.has(moduleId)) {
-      state.adjMap.set(moduleId, new Set());
+    if (!adjMap.has(moduleId)) {
+      adjMap.set(moduleId, new Set());
     }
 
     // loop to check exams student is already sitting
-    for (var i = 0; i < state.examMap.size && i !== moduleId; i++) {
-      if (state.examMap.get(i).has(studentId)) {
-        state.adjMap.get(i).add(moduleId);
-        state.adjMap.get(moduleId).add(i);
+    for (var i = 0; i < examMap.size && i !== moduleId; i++) {
+      if (examMap.get(i).has(studentId)) {
+        adjMap.get(i).add(moduleId);
+        adjMap.get(moduleId).add(i);
       }
     }
 
-    console.log("ADJ", state.adjMap);
-    console.log("EXAM", state.examMap);
-    console.log("STUDENT", state.students);
-    console.log("MOD", state.modules);
+    console.log("ADJ", adjMap);
+    console.log("EXAM", examMap);
+    console.log("STUDENT", students);
+    console.log("MOD", modules);
+    setState({ ...state, student: "" });
   }
 
   // modules.set(module, new Set(student));
   // timetable.set(module, timetable.get(module).add(student));
   //
+
+  function greedyAlgorithm() {
+    // need to assign colours for all vertices
+    let availableColours = [...Array(adjMap.size).keys()];
+    let assignedColours = new Array(adjMap.size).fill(-1);
+    // assign the first colour
+    assignedColours[0] = 0;
+
+    for (let i = 1; i < adjMap.size; i++) {
+      let edges = adjMap.get(i);
+      for (let j = 0; j < edges.size; j++) {
+        if (assignedColours[edges[j]] !== -1) {
+          const index = availableColours.indexOf(assignedColours[edges[j]]);
+          availableColours.splice(index, 1);
+        }
+      }
+      assignedColours[i] = Math.min(availableColours);
+      // reset the available colours
+      availableColours = [...Array(adjMap.size).keys()];
+    }
+
+    console.log(assignedColours);
+  }
 
   function handleChange(event) {
     const value = event.target.value;
@@ -96,6 +121,10 @@ function App() {
         </div>
         <button onClick={() => addPair(state.module, state.student)}>
           Add
+        </button>
+
+        <button onClick={() => greedyAlgorithm()}>
+          Apply the 'Greedy Algorithm'
         </button>
       </div>
     </div>
