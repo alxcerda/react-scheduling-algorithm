@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import Node from "./components/Node";
 import "./App.scss";
-import { uniq, invert } from "lodash";
+import { uniq } from "lodash";
+import randomColor from "randomcolor";
 
 function App() {
   const [state, setState] = useState({
@@ -14,6 +15,7 @@ function App() {
   const [examMap] = useState(new Map());
   const [adjMap] = useState(new Map());
   const [upperBound, setUpperBound] = useState(null);
+  const [colors, setColors] = useState([]);
 
   function addPair(module, student) {
     setUpperBound(null);
@@ -43,10 +45,6 @@ function App() {
       }
     }
     setState({ ...state, student: "" });
-    // console.log("ADJ", adjMap);
-    // console.log("EXAM", examMap);
-    // console.log("STUDENT", students);
-    // console.log("MOD", modules);
   }
 
   function setId(name, map) {
@@ -63,32 +61,39 @@ function App() {
 
   function applyGreedyAlgorithm() {
     // need to assign colours for all vertices
-    let availableColours = new Set(Array(adjMap.size).keys());
-    console.log("avcolours", availableColours);
-    let assignedColours = new Array(adjMap.size).fill(-1);
-    console.log("ascolours", assignedColours);
+    let tempColors = new Array(adjMap.size).fill("#ffffff");
+    let availableColors = new Set(Array(adjMap.size).keys());
+    let assignedColors = new Array(adjMap.size).fill(-1);
+
     // assign the first colour
-    assignedColours[0] = 0;
+    assignedColors[0] = 0;
 
     for (let i = 1; i < adjMap.size; i++) {
       let edges = adjMap.get(i);
       let test = edges.values();
       for (let j = 0; j < edges.size; j++) {
         let vertex = test.next().value;
-        let colour = assignedColours[vertex];
+        let colour = assignedColors[vertex];
         if (colour !== -1) {
-          // const index = availableColours.indexOf(assignedColours[edges[j]]);
-          availableColours.delete(colour);
+          availableColors.delete(colour);
         }
       }
-      assignedColours[i] = Math.min(...Array.from(availableColours.values()));
+      assignedColors[i] = Math.min(...Array.from(availableColors.values()));
+
+      if (
+        assignedColors
+          .slice(0, i - 1)
+          .some((item) => item === assignedColors[i])
+      ) {
+        tempColors[i] = tempColors[assignedColors.indexOf(assignedColors[i])];
+      } else tempColors[i] = randomColor();
+      setColors(tempColors);
       // reset the available colours
-      availableColours = new Set(Array(adjMap.size).keys());
+      availableColors = new Set(Array(adjMap.size).keys());
     }
 
-    console.log(assignedColours);
     if (modules.size === 0) setUpperBound(0);
-    else setUpperBound(uniq(assignedColours, false).length);
+    else setUpperBound(uniq(assignedColors, false).length);
   }
 
   function getNodeDetails() {
@@ -127,17 +132,30 @@ function App() {
             onChange={handleChange}
           />
         </div>
-        <button onClick={() => addPair(state.module, state.student)}>
+        <button
+          onClick={() =>
+            state.module !== "" &&
+            state.student !== "" &&
+            addPair(state.module, state.student)
+          }
+        >
           Add
         </button>
         <button onClick={() => applyGreedyAlgorithm()}>
           Apply the 'Greedy Algorithm'
         </button>
       </div>
-      {upperBound !== null && <h3> The upper bound is {upperBound}</h3>}
+      {upperBound !== null && (
+        <h3> The upper bound of exam slots is {upperBound}</h3>
+      )}
       {modules.size > 0 &&
         getNodeDetails().map((node, index) => (
-          <Node name={node.name} number={node.number} index={index} />
+          <Node
+            name={node.name}
+            number={node.number}
+            index={index}
+            color={colors[index]}
+          />
         ))}
     </div>
   );
