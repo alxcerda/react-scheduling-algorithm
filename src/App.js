@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import Node from "./components/Node";
-import "./App.scss";
 import { uniq } from "lodash";
 import randomColor from "randomcolor";
+import "./App.scss";
 
 function App() {
   const [state, setState] = useState({
@@ -60,34 +60,41 @@ function App() {
   }
 
   function applyGreedyAlgorithm() {
-    // need to assign colours for all vertices
-    let tempColors = new Array(adjMap.size).fill("#ffffff");
+    // need to assign colors for all vertices
     let availableColors = new Set(Array(adjMap.size).keys());
     let assignedColors = new Array(adjMap.size).fill(-1);
 
-    // assign the first colour
+    // assign the first color
     assignedColors[0] = 0;
+    if (colors.length == 0) colors.push({ index: 0, color: "#FFB6C1" });
 
     for (let i = 1; i < adjMap.size; i++) {
       let edges = adjMap.get(i);
       let test = edges.values();
       for (let j = 0; j < edges.size; j++) {
         let vertex = test.next().value;
-        let colour = assignedColors[vertex];
-        if (colour !== -1) {
-          availableColors.delete(colour);
+        let color = assignedColors[vertex];
+        if (color !== -1) {
+          availableColors.delete(color);
         }
       }
       assignedColors[i] = Math.min(...Array.from(availableColors.values()));
+      const exisitingColor = colors.find(
+        (item) => item.index === assignedColors.indexOf(assignedColors[i])
+      )?.color;
+      const existingObj = colors.find((item) => item.index === i);
 
       if (
-        assignedColors
-          .slice(0, i - 1)
-          .some((item) => item === assignedColors[i])
+        assignedColors.slice(0, i).some((item) => item === assignedColors[i])
       ) {
-        tempColors[i] = tempColors[assignedColors.indexOf(assignedColors[i])];
-      } else tempColors[i] = randomColor();
-      setColors(tempColors);
+        if (existingObj)
+          colors[colors.indexOf(existingObj)].color = exisitingColor;
+        else colors.push({ index: i, color: exisitingColor });
+      } else {
+        if (existingObj)
+          colors[colors.indexOf(existingObj)].color = exisitingColor;
+        else colors.push({ index: i, color: randomColor() });
+      }
       // reset the available colours
       availableColors = new Set(Array(adjMap.size).keys());
     }
@@ -154,7 +161,7 @@ function App() {
             name={node.name}
             number={node.number}
             index={index}
-            color={colors[index]}
+            colors={colors}
           />
         ))}
     </div>
