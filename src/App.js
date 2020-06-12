@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Node from "./components/Node";
-import "./App.css";
+import "./App.scss";
 import { uniq } from "lodash";
 
 function App() {
@@ -13,10 +13,10 @@ function App() {
   const [students] = useState(new Map());
   const [examMap] = useState(new Map());
   const [adjMap] = useState(new Map());
-  const [upperBound, setUpperBound] = useState("");
+  const [upperBound, setUpperBound] = useState(null);
 
   function addPair(module, student) {
-    setUpperBound("");
+    setUpperBound(null);
 
     // set IDs
     let moduleId = setId(module, modules);
@@ -87,7 +87,8 @@ function App() {
     }
 
     console.log(assignedColours);
-    setUpperBound(uniq(assignedColours, false).length);
+    if (modules.size === 0) setUpperBound(0);
+    else setUpperBound(uniq(assignedColours, false).length);
   }
 
   function handleChange(event) {
@@ -100,7 +101,7 @@ function App() {
 
   return (
     <div className="app">
-      <h1>Scheduling Algorithm Visualiser</h1>
+      <h1>Greedy Algorithm Visualiser</h1>
       <div className="add">
         <div className="inputs">
           <input
@@ -122,10 +123,10 @@ function App() {
         <button onClick={() => applyGreedyAlgorithm()}>
           Apply the 'Greedy Algorithm'
         </button>
-        {upperBound && <h3> The upper bound is {upperBound}</h3>}
-        {modules.size > 0 &&
-          Array.from(modules.keys()).map((node) => <Node name={node} />)}
       </div>
+      {upperBound !== null && <h3> The upper bound is {upperBound}</h3>}
+      {modules.size > 0 &&
+        Array.from(modules.keys()).map((node) => <Node name={node} />)}
     </div>
   );
 }
