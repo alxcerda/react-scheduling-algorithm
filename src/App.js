@@ -5,18 +5,56 @@ function App() {
   const [state, setState] = useState({
     module: "",
     student: "",
-    timetable: new Map(),
+    modules: new Map(),
+    students: new Map(),
+    examMap: new Map(),
+    adjMap: new Map(),
   });
 
-  function addPair(module, student, timetable) {
+  function addPair(module, student) {
+    var moduleId;
+    var studentId;
 
-    if (!timetable.has(module)) {
-      timetable.set(module, new Set(student));
+    // get moduleId
+    if (!state.modules.has(module) && state.modules.size === 0) {
+      moduleId = 1;
+      state.modules.set(module, moduleId);
+    } else if (!state.modules.has(module)) {
+      moduleId = state.modules.size + 1;
+      state.modules.set(module, moduleId);
     } else {
-      timetable.set(module, timetable.get(module).add(student));
+      moduleId = state.modules.get(module);
     }
-    console.log(timetable);
+
+    // get studentId
+    if (!state.students.has(student) && state.students.size === 0) {
+      studentId = 1;
+      state.students.set(student, studentId);
+    } else if (!state.students.has(student)) {
+      studentId = state.students.size + 1;
+      state.students.set(student, studentId);
+    } else {
+      studentId = state.students.get(student);
+    }
+
+    // add to examMap
+    if (!state.examMap.has(moduleId)) {
+      var set = new Set();
+      state.examMap.set(moduleId, set.add(studentId));
+    } else {
+      state.examMap.get(moduleId).add(studentId);
+    }
+
+    // add to adjacency list
+
+    console.log(state.examMap);
+    console.log(state.students);
+    console.log(state.modules);
   }
+
+  // modules.set(module, new Set(student));
+  // timetable.set(module, timetable.get(module).add(student));
+  //
 
   function handleChange(event) {
     const value = event.target.value;
@@ -29,8 +67,8 @@ function App() {
   return (
     <div className="app">
       <h1>Scheduling Algorithm Visualiser</h1>
-      <div class="add">
-        <div class="inputs">
+      <div className="add">
+        <div className="inputs">
           <input
             placeholder="Module Name"
             name="module"
@@ -44,11 +82,7 @@ function App() {
             onChange={handleChange}
           />
         </div>
-        <button
-          onClick={() =>
-            addPair(state.module, state.student, state.timetable)
-          }
-        >
+        <button onClick={() => addPair(state.module, state.student)}>
           Add
         </button>
       </div>
