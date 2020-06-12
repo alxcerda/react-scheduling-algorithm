@@ -17,10 +17,10 @@ function App() {
 
     // get moduleId
     if (!state.modules.has(module) && state.modules.size === 0) {
-      moduleId = 1;
+      moduleId = 0;
       state.modules.set(module, moduleId);
     } else if (!state.modules.has(module)) {
-      moduleId = state.modules.size + 1;
+      moduleId = state.modules.size;
       state.modules.set(module, moduleId);
     } else {
       moduleId = state.modules.get(module);
@@ -28,10 +28,10 @@ function App() {
 
     // get studentId
     if (!state.students.has(student) && state.students.size === 0) {
-      studentId = 1;
+      studentId = 0;
       state.students.set(student, studentId);
     } else if (!state.students.has(student)) {
-      studentId = state.students.size + 1;
+      studentId = state.students.size;
       state.students.set(student, studentId);
     } else {
       studentId = state.students.get(student);
@@ -46,10 +46,22 @@ function App() {
     }
 
     // add to adjacency list
+    if (!state.adjMap.has(moduleId)) {
+      state.adjMap.set(moduleId, new Set());
+    }
 
-    console.log(state.examMap);
-    console.log(state.students);
-    console.log(state.modules);
+    // loop to check exams student is already sitting
+    for (var i = 0; i < state.examMap.size && i !== moduleId; i++) {
+      if (state.examMap.get(i).has(studentId)) {
+        state.adjMap.get(i).add(moduleId);
+        state.adjMap.get(moduleId).add(i);
+      }
+    }
+
+    console.log("ADJ", state.adjMap);
+    console.log("EXAM", state.examMap);
+    console.log("STUDENT", state.students);
+    console.log("MOD", state.modules);
   }
 
   // modules.set(module, new Set(student));
