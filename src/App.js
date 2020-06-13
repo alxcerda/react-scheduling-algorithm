@@ -15,7 +15,7 @@ function App() {
   const [examMap] = useState(new Map());
   const [adjMap] = useState(new Map());
   const [upperBound, setUpperBound] = useState(null);
-  const [colors, setColors] = useState([]);
+  const [colors] = useState([]);
 
   function addPair(module, student) {
     setUpperBound(null);
