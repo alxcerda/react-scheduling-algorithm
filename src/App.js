@@ -1,11 +1,11 @@
 import React, { useState } from "react";
-import Node from "./components/Node";
+import Module from "./components/Module";
 import { uniq } from "lodash";
 import randomColor from "randomcolor";
 import "./App.scss";
 
 function App() {
-  const [state, setState] = useState({
+  const [values, setValues] = useState({
     module: "",
     student: "",
   });
@@ -14,17 +14,18 @@ function App() {
   const [students] = useState(new Map());
   const [examMap] = useState(new Map());
   const [adjMap] = useState(new Map());
+  const [error, setError] = useState(false);
   const [upperBound, setUpperBound] = useState(null);
-  const [colors] = useState([]);
+  const [colors, setColors] = useState([]);
 
   function addPair(module, student) {
     setUpperBound(null);
 
     // set IDs
-    let moduleId = setId(module, modules);
-    let studentId = setId(student, students);
+    let moduleId = getId(module, modules);
+    let studentId = getId(student, students);
 
-    // add to examMap
+    // examMap has all exams and all students taking them (modules : students)
     if (!examMap.has(moduleId)) {
       var set = new Set();
       examMap.set(moduleId, set.add(studentId));
@@ -32,81 +33,91 @@ function App() {
       examMap.get(moduleId).add(studentId);
     }
 
-    // add to adjacency list
+    // add module to adjacency list (modules : connected modules)
     if (!adjMap.has(moduleId)) {
       adjMap.set(moduleId, new Set());
     }
 
-    // loop to check exams student is already sitting
-    for (var i = 0; i < examMap.size && i !== moduleId; i++) {
+    // loop to check exams student is already sitting, skip self
+    for (var i = 0; i < examMap.size; i++) {
+      if (i === moduleId) continue;
       if (examMap.get(i).has(studentId)) {
         adjMap.get(i).add(moduleId);
         adjMap.get(moduleId).add(i);
       }
     }
-    setState({ ...state, student: "" });
+    setValues({ ...values, student: "" });
   }
 
-  function setId(name, map) {
+  function getId(name, map) {
     if (!map.has(name) && map.size === 0) {
+      // set initial id
       map.set(name, 0);
       return 0;
     } else if (!map.has(name)) {
+      // add next id
       map.set(name, map.size);
       return map.size - 1;
     } else {
+      // return existing id
       return map.get(name);
     }
   }
 
   function applyGreedyAlgorithm() {
     // need to assign colors for all vertices
+    // temp colors array
+    const newColors = [];
+
+    if (modules.size === 0) {
+      setError(true);
+      return;
+    }
+    // initialise possible colors (worst case all different)
     let availableColors = new Set(Array(adjMap.size).keys());
+    // initialise all colors as unassigned
     let assignedColors = new Array(adjMap.size).fill(-1);
 
     // assign the first color
     assignedColors[0] = 0;
-    if (colors.length == 0) colors.push({ index: 0, color: "#FFB6C1" });
+    newColors.push({ index: 0, color: "#FFB6C1" });
 
+    // for each vertex, delete unavailable colors ie. ones assigned to neighbours
     for (let i = 1; i < adjMap.size; i++) {
-      let edges = adjMap.get(i);
-      let test = edges.values();
+      let connectedVertices = adjMap.get(i);
+      let iterator = connectedVertices.values();
 
-      for (let j = 0; j < edges.size; j++) {
-        let vertex = test.next().value;
+      for (let j = 0; j < connectedVertices.size; j++) {
+        let vertex = iterator.next().value;
         let color = assignedColors[vertex];
         if (color !== -1) {
           availableColors.delete(color);
         }
       }
 
+      // get minimum available color
       assignedColors[i] = Math.min(...Array.from(availableColors.values()));
-      const exisitingColor = colors.find(
+
+      // check if color already exists, and get that hex code
+      const exisitingColor = newColors.find(
         (item) => item.index === assignedColors.indexOf(assignedColors[i])
       )?.color;
-      const existingObj = colors.find((item) => item.index === i);
 
-      if (
-        assignedColors.slice(0, i).some((item) => item === assignedColors[i])
-      ) {
-        if (existingObj)
-          colors[colors.indexOf(existingObj)].color = exisitingColor;
-        else colors.push({ index: i, color: exisitingColor });
+      if (exisitingColor) {
+        newColors.push({ index: i, color: exisitingColor });
       } else {
-        if (existingObj)
-          colors[colors.indexOf(existingObj)].color = randomColor();
-        else colors.push({ index: i, color: randomColor() });
+        newColors.push({ index: i, color: randomColor() });
       }
 
-      // reset the available colours
+      // reset the available colours for next iteration
       availableColors = new Set(Array(adjMap.size).keys());
     }
 
-    if (modules.size === 0) setUpperBound(0);
-    else setUpperBound(uniq(assignedColors, false).length);
+    setColors(newColors);
+    setUpperBound(uniq(assignedColors, false).length);
   }
 
-  function getNodeDetails() {
+  function getModuleDetails() {
     // get module name and number of students sitting exam
     let details = [];
     let keys = Array.from(modules.keys());
@@ -117,54 +128,61 @@ function App() {
   }
 
   function handleChange(event) {
+    setError(false);
     const value = event.target.value;
-    setState({
-      ...state,
+    setValues({
+      ...values,
       [event.target.name]: value,
     });
+  }
+
+  function getColor(index) {
+    return colors.some((item) => item.index === index)
+      ? colors.find((item) => item.index === index).color
+      : "";
   }
 
   return (
     <div className="app">
       <h1>Greedy Algorithm Visualiser</h1>
-      <div className="add">
-        <div className="inputs">
-          <input
-            placeholder="Module Name"
-            name="module"
-            value={state.module}
-            onChange={handleChange}
-          />
-          <input
-            placeholder="Student Name"
-            name="student"
-            value={state.student}
-            onChange={handleChange}
-          />
-        </div>
+      <div className="inputs">
+        <input
+          placeholder="Module Name"
+          name="module"
+          value={values.module}
+          onChange={handleChange}
+        />
+        <input
+          placeholder="Student Name"
+          name="student"
+          value={values.student}
+          onChange={handleChange}
+        />
+      </div>
+      <div className="inputs">
         <button
           onClick={() =>
-            state.module !== "" &&
-            state.student !== "" &&
-            addPair(state.module, state.student)
+            values.module !== "" &&
+            values.student !== "" &&
+            addPair(values.module, values.student)
           }
         >
-          Add
+          Add Module
         </button>
         <button onClick={() => applyGreedyAlgorithm()}>
           Apply the 'Greedy Algorithm'
         </button>
       </div>
-      {upperBound !== null && (
-        <h3> The upper bound of exam slots is {upperBound}</h3>
-      )}
+      {error && <h3> No modules added :( </h3>}
+      {upperBound && <h3> The upper bound of exam slots is {upperBound}</h3>}
       {modules.size > 0 &&
-        getNodeDetails().map((node, index) => (
-          <Node
+        getModuleDetails().map((node, index) => (
+          <Module
+            key={index}
             name={node.name}
             number={node.number}
             index={index}
-            colors={colors}
+            color={getColor(index)}
           />
         ))}
     </div>
